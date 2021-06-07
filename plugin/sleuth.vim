@@ -8,6 +8,12 @@ if (exists("g:loaded_sleuth") && !exists("g:sleuth_debug")) || v:version < 700 |
 endif
 let g:loaded_sleuth = 1
 
+function! s:debug(msg) abort
+  if exists("g:sleuth_debug")
+    echo a:msg
+  endif
+endfunction
+
 function! s:guess(lines) abort
   let options = {}
   let heuristics = {'spaces': 0, 'hard': 0, 'soft': 0}
@@ -86,6 +92,7 @@ function! s:guess(lines) abort
     endif
   endfor
 
+  call s:debug('heuristics.soft='.heuristics.soft.', heuristics.hard='.heuristics.hard)
   if heuristics.hard && !heuristics.spaces
     return {'expandtab': 0, 'shiftwidth': &tabstop}
   elseif heuristics.soft != heuristics.hard
@@ -128,9 +135,7 @@ function! s:apply_if_ready(options) abort
     return 0
   else
     for [option, value] in items(a:options)
-      if exists("g:sleuth_debug")
-        echo 'Setting '.option.'='.value
-      endif
+      call s:debug('Setting '.option.'='.value)
       call setbufvar('', '&'.option, value)
     endfor
     return 1
@@ -141,6 +146,7 @@ function! s:detect() abort
   if &buftype ==# 'help'
     return
   endif
+  call s:debug('Guessing with initial tabstop='. &tabstop .', shiftwidth='. &shiftwidth)
 
   let options = s:guess(getline(1, 1024))
   if s:apply_if_ready(options)
