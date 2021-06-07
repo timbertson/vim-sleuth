@@ -3,7 +3,7 @@
 " Version:      1.2
 " GetLatestVimScripts: 4375 1 :AutoInstall: sleuth.vim
 
-if exists("g:loaded_sleuth") || v:version < 700 || &cp
+if (exists("g:loaded_sleuth") && !exists("g:sleuth_debug")) || v:version < 700 || &cp
   finish
 endif
 let g:loaded_sleuth = 1
@@ -90,9 +90,6 @@ function! s:guess(lines) abort
     return {'expandtab': 0, 'shiftwidth': &tabstop}
   elseif heuristics.soft != heuristics.hard
     let options.expandtab = heuristics.soft > heuristics.hard
-    if heuristics.hard
-      let options.tabstop = 8
-    endif
   endif
 
   return options
@@ -131,6 +128,9 @@ function! s:apply_if_ready(options) abort
     return 0
   else
     for [option, value] in items(a:options)
+      if exists("g:sleuth_debug")
+        echo 'Setting '.option.'='.value
+      endif
       call setbufvar('', '&'.option, value)
     endfor
     return 1
